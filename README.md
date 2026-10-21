@@ -7,7 +7,8 @@ painel de GPU, benchmarks, stress tests, overlay de FPS, ferramentas do Windows 
 > publicado sob a licença [MIT](LICENSE). O aviso de copyright original foi mantido, como a licença exige.
 > Os componentes de terceiros e seus avisos estão em [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 >
-> **Download:** na aba *Releases* do repositório deste projeto. O app roda como administrador; não use versões baixadas de outros lugares.
+> **Download oficial:** apenas em [github.com/zyxsolutions/Zyx-explode/releases](https://github.com/zyxsolutions/Zyx-explode/releases).
+> O app roda como administrador; não use versões baixadas de outros lugares.
 
 ## Novidades da v0.16
 - **Inicialização** (ZYX FERRAMENTAS): veja, desative ou remova os programas que abrem junto com o Windows, com opção de desfazer.
