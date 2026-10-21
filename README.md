@@ -156,9 +156,24 @@ Para levar a outro PC: dê dois cliques em `publicar.bat`. Ele gera `..\ZyxExplo
 sem caminhos do seu usuário) + `LEIA-ME.txt`. No outro PC só é preciso instalar o PawnIO. Rode de novo após cada alteração no código.
 
 ### Baixar a versão mais recente
-A cada push na `main`, o GitHub Actions (`.github/workflows/publicar.yml`) gera o `ZyxExplode.exe` e atualiza a release
-**latest** (aba *Releases* do repositório), com o `.exe` e um `.zip`. É só baixar de lá, sem compilar.
-Ao criar uma tag (`git tag v0.12` e `git push --tags`), também sai uma release fixa dessa versão.
+A cada push na `main`, o GitHub Actions (`.github/workflows/publicar.yml`) gera o instalador **`ZyxExplode-Setup.exe`**
+(`installer/ZyxExplode.iss`, Inno Setup), o `ZyxExplode.exe` avulso e um `.zip`, e atualiza a release **latest**
+(aba *Releases* do repositório). É só baixar de lá, sem compilar. Ao criar uma tag (`git tag v0.17` e `git push --tags`),
+também sai uma release fixa dessa versão. A versão do instalador vem do campo `<Version>` do `ZyxExplode.csproj`.
+
+O instalador coloca o programa em *Arquivos de Programas*, cria os atalhos (o da área de trabalho é opcional) e o desinstalador.
+Configurações e histórico (`%AppData%\ZyxExplode`) são mantidos ao reinstalar; ao desinstalar ele pergunta se quer apagá-los.
+
+### Assinatura digital (opcional)
+Sem assinatura, o Windows mostra "O Windows protegeu o computador" (SmartScreen). A assinatura identifica o publicador, mas
+**não elimina o aviso na hora**: o SmartScreen também considera a reputação do arquivo, que cresce com o número de downloads.
+O workflow já está pronto para assinar o `.exe` e o instalador; ele só precisa de um certificado de assinatura de código:
+1. Compre um certificado de assinatura de código (OV ou EV) numa autoridade certificadora e exporte-o como `.pfx`
+   (algumas só entregam em token USB ou na nuvem; nesse caso o `tools/sign.ps1` precisa ser trocado pela ferramenta da AC).
+2. Em *Settings › Secrets and variables › Actions* do repositório, crie os segredos `CODESIGN_PFX_BASE64`
+   (`[Convert]::ToBase64String([IO.File]::ReadAllBytes("certificado.pfx"))`) e `CODESIGN_PFX_PASSWORD`.
+3. Faça um push. O `tools/sign.ps1` assina e verifica os arquivos; sem os segredos, o build continua saindo sem assinatura.
+Nunca coloque o `.pfx` nem a senha no repositório.
 
 ## Observações
 - Se algum sensor não aparecer, depende do suporte da biblioteca à sua placa-mãe.

@@ -1,7 +1,8 @@
 name: Publicar
 
-# A cada push na main, gera o ZyxExplode.exe e atualiza a release "latest" (sempre a versão mais nova).
-# Ao criar uma tag (ex.: v0.12), gera também uma release fixa dessa versão.
+# A cada push na main, gera o ZyxExplode.exe e o instalador (ZyxExplode-Setup.exe) e atualiza a release "latest".
+# Ao criar uma tag (ex.: v0.17), gera também uma release fixa dessa versão.
+# Assinatura digital: automática quando o segredo CODESIGN_PFX_BASE64 existir (veja tools/sign.ps1 e o README).
 on:
   push:
     branches: [main]
@@ -18,6 +19,10 @@ concurrency:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      CODESIGN_PFX_BASE64: ${{ secrets.CODESIGN_PFX_BASE64 }}
+      CODESIGN_PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
+      CODESIGN_TIMESTAMP_URL: ${{ vars.CODESIGN_TIMESTAMP_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,6 +32,27 @@ jobs:
 
       - name: Publicar (arquivo único, com o .NET embutido)
         run: dotnet publish ZyxExplode.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -o dist -nologo
+
+      - name: Assinar o programa
+        shell: pwsh
+        run: ./tools/sign.ps1 dist/ZyxExplode.exe
+
+      - name: Gerar o instalador
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content ZyxExplode.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if (-not $version) { throw "Version não encontrada no ZyxExplode.csproj" }
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+            if ($LASTEXITCODE -ne 0) { throw "Não foi possível instalar o Inno Setup." }
+          }
+          & $iscc "/DAppVersion=$version" "/DSourceDir=$PWD\dist" installer\ZyxExplode.iss
+          if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar o instalador." }
+
+      - name: Assinar o instalador
+        shell: pwsh
+        run: ./tools/sign.ps1 installer/Output/ZyxExplode-Setup.exe
 
       - name: Montar pacote
         shell: pwsh
@@ -40,9 +66,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $sha = "$env:GITHUB_SHA".Substring(0, 7)
           gh release delete latest --cleanup-tag --yes
-          gh release create latest ZyxExplode.zip dist/ZyxExplode.exe --target $env:GITHUB_SHA --latest --title "ZYX EXPLODE (versão mais recente)" --notes-file NOVIDADES.md
+          gh release create latest installer/Output/ZyxExplode-Setup.exe ZyxExplode.zip dist/ZyxExplode.exe --target $env:GITHUB_SHA --latest --title "ZYX EXPLODE (versão mais recente)" --notes-file NOVIDADES.md
 
       - name: Release da versão (tag)
         if: startsWith(github.ref, 'refs/tags/')
@@ -50,4 +75,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create $env:GITHUB_REF_NAME ZyxExplode.zip dist/ZyxExplode.exe --title "ZYX EXPLODE $env:GITHUB_REF_NAME" --generate-notes --latest=false
+          gh release create $env:GITHUB_REF_NAME installer/Output/ZyxExplode-Setup.exe ZyxExplode.zip dist/ZyxExplode.exe --title "ZYX EXPLODE $env:GITHUB_REF_NAME" --generate-notes --latest=false
