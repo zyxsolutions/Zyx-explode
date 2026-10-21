@@ -45,6 +45,14 @@ public static class SystemInfoCollector
         return $"{b:0.##} {u[i]}";
     }
 
+    /// <summary>Mesmo critério da página Placa de vídeo: o driver reserva um pouco (8176 MB = placa de 8 GB, como no GPU-Z).</summary>
+    private static string VramText(ulong bytes)
+    {
+        if (bytes < 1UL << 30) return Bytes(bytes);
+        double gib = bytes / (double)(1UL << 30);
+        return $"{Math.Ceiling(gib - 0.15):0} GB ({bytes >> 20:N0} MB utilizáveis)";
+    }
+
     private static void CollectOs(InfoNode n)
     {
         foreach (var os in Query("SELECT * FROM Win32_OperatingSystem"))
@@ -252,11 +260,28 @@ public static class SystemInfoCollector
 
     private static void CollectGpu(InfoNode n)
     {
+        // O WMI (Win32_VideoController.AdapterRAM) é um número de 32 bits e trava em 4 GB; a VRAM real vem do DXGI.
+        var adapters = Dxgi.Enumerate();
+        var used = new HashSet<int>();   // índices (o record Adapter compara por valor: duas placas iguais colidiriam)
         foreach (var g in Query("SELECT * FROM Win32_VideoController"))
         {
             var gpu = n.Add(S(g, "Name"));
             gpu.Add("Versão do driver", S(g, "DriverVersion"));
-            gpu.Add("Memória (WMI, limitada a 4 GB)", Bytes(g["AdapterRAM"]));
+
+            // Casa pelo VEN/DEV do PNPDeviceID; duas placas iguais pegam adaptadores diferentes, na ordem.
+            var m = System.Text.RegularExpressions.Regex.Match(g["PNPDeviceID"]?.ToString() ?? "",
+                        @"VEN_([0-9A-F]{4})&DEV_([0-9A-F]{4})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            Dxgi.Adapter? dx = null;
+            if (m.Success)
+            {
+                string ven = m.Groups[1].Value.ToUpperInvariant(), dev = m.Groups[2].Value.ToUpperInvariant();
+                for (int i = 0; i < adapters.Count; i++)
+                    if (!used.Contains(i) && adapters[i].VendorId.ToString("X4") == ven && adapters[i].DeviceId.ToString("X4") == dev)
+                    { used.Add(i); dx = adapters[i]; break; }
+            }
+
+            if (dx != null && dx.DedicatedVideo > 0) gpu.Add("Memória de vídeo", VramText(dx.DedicatedVideo));
+            else gpu.Add("Memória de vídeo (WMI, até 4 GB)", Bytes(g["AdapterRAM"]));
             gpu.Add("Resolução atual", $"{S(g, "CurrentHorizontalResolution")}x{S(g, "CurrentVerticalResolution")} @ {S(g, "CurrentRefreshRate")} Hz");
         }
     }
