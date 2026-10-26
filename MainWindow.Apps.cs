@@ -62,7 +62,7 @@ public partial class MainWindow
             var b = new Button
             {
                 Content = label, Tag = ids, Style = (Style)FindResource("OutlineButton"),
-                Padding = new Thickness(12, 5), FontSize = 11, Margin = new Thickness(0, 0, 8, 6),
+                Padding = new Thickness(12, 5, 12, 5), FontSize = 11, Margin = new Thickness(0, 0, 8, 6),
                 ToolTip = $"Marca {ids.Length} apps (os que ainda não estão instalados).",
             };
             b.Click += AppProfile_Click;
