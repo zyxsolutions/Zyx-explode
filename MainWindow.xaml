@@ -269,6 +269,12 @@
                                     <TextBlock Text="Overclock" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
+                            <RadioButton x:Name="NavMonitor" Style="{StaticResource NavItem}" Tag="PageMonitor" Checked="Nav_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE7F4;" FontFamily="{StaticResource Icons}" FontSize="14" Width="28" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Teste de monitor" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
                             </StackPanel>
                             <ToggleButton x:Name="GrpTools" Style="{StaticResource NavGroup}" Content="ZYX FERRAMENTAS"/>
                             <StackPanel x:Name="GrpToolsItems" Margin="10,0,0,4" Visibility="{Binding IsChecked, ElementName=GrpTools, Converter={StaticResource BoolVis}}">
@@ -276,6 +282,18 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE9F3;" FontFamily="{StaticResource Icons}" FontSize="14" Width="28" VerticalAlignment="Center"/>
                                     <TextBlock Text="Otimização" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="NavMemory" Style="{StaticResource NavItem}" Tag="PageMemory" Checked="Nav_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE9D2;" FontFamily="{StaticResource Icons}" FontSize="14" Width="28" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Memória" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="NavMaintenance" Style="{StaticResource NavItem}" Tag="PageMaintenance" Checked="Nav_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE713;" FontFamily="{StaticResource Icons}" FontSize="14" Width="28" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Manutenção" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="NavStartup" Style="{StaticResource NavItem}" Tag="PageStartup" Checked="Nav_Checked">
@@ -2247,7 +2265,7 @@
                         <Grid Margin="0,0,0,20">
                             <StackPanel Margin="0,0,250,0">
                                 <TextBlock Text="INSTALAR APPS" Style="{StaticResource H1}"/>
-                                <TextBlock Text="Os essenciais depois de formatar o PC · versão oficial mais recente, instalação silenciosa" Style="{StaticResource Sub}" TextWrapping="Wrap"/>
+                                <TextBlock Text="Catálogo para depois de formatar o PC · versão oficial mais recente, instalação silenciosa, com seleções prontas para cliente, gamer e técnico" Style="{StaticResource Sub}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <Button x:Name="BtnAppsInstall" Style="{StaticResource PrimaryButton}" Content="INSTALAR SELECIONADOS" Padding="20,9"
                                     HorizontalAlignment="Right" VerticalAlignment="Top" Click="BtnAppsInstall_Click"/>
@@ -2261,19 +2279,31 @@
 
                         <Border Style="{StaticResource CardBorder}">
                             <StackPanel>
-                                <Grid Margin="0,0,0,6">
-                                    <TextBlock Text="APPS" Style="{StaticResource Label}"/>
-                                    <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Top">
-                                        <Button Style="{StaticResource OutlineButton}" Content="MARCAR TODOS" Padding="10,4" FontSize="11" Margin="0,0,8,0" Click="BtnAppsAll_Click"/>
+                                <Grid Margin="0,0,0,10">
+                                    <TextBlock Text="APPS" Style="{StaticResource Label}" VerticalAlignment="Center" Margin="0"/>
+                                    <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <TextBox x:Name="AppsSearch" Width="220" Tag="Buscar app…" TextChanged="AppsSearch_Changed" Margin="0,0,8,0"/>
+                                        <Button Style="{StaticResource OutlineButton}" Content="MARCAR OS DA LISTA" Padding="10,4" FontSize="11" Margin="0,0,8,0" Click="BtnAppsAll_Click"/>
                                         <Button Style="{StaticResource OutlineButton}" Content="DESMARCAR" Padding="10,4" FontSize="11" Click="BtnAppsNone_Click"/>
                                     </WrapPanel>
                                 </Grid>
+                                <TextBlock Text="SELEÇÕES PRONTAS" Style="{StaticResource Label}" Margin="0,0,0,6"/>
+                                <WrapPanel x:Name="AppsProfiles" Margin="0,0,0,10"/>
                                 <TextBlock Foreground="{DynamicResource Faint}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,10">
                                     Usa o winget, o instalador de pacotes da Microsoft que já vem no Windows 10/11: baixa do site oficial de
                                     cada fabricante e confere o arquivo antes de instalar. Os apps são instalados um de cada vez, sem janelas.
                                     O que já está instalado aparece marcado como INSTALADO.
                                 </TextBlock>
                                 <ItemsControl x:Name="AppsList">
+                                    <ItemsControl.GroupStyle>
+                                        <GroupStyle>
+                                            <GroupStyle.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Name}" Style="{StaticResource Label}" Margin="0,20,0,6"/>
+                                                </DataTemplate>
+                                            </GroupStyle.HeaderTemplate>
+                                        </GroupStyle>
+                                    </ItemsControl.GroupStyle>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="0,10">
@@ -2313,6 +2343,11 @@
                         </Border>
                     </StackPanel>
                 </ScrollViewer>
+
+                <!-- ===== ZYX MEMÓRIA · MANUTENÇÃO · TESTE DE MONITOR (controles próprios) ===== -->
+                <local:MemoryPage x:Name="PageMemory" Visibility="Collapsed"/>
+                <local:MaintenancePage x:Name="PageMaintenance" Visibility="Collapsed"/>
+                <local:MonitorTestPage x:Name="PageMonitor" Visibility="Collapsed"/>
 
                 <!-- ===== ZYX MAKER · Portas COM (fantasmas e números COM presos) ===== -->
                 <ScrollViewer x:Name="PageMakerPorts" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">

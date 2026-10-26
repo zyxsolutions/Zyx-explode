@@ -176,7 +176,7 @@ public static class Optimizer
 
     private static long AvailableBytes() => MemoryStatus().Available;
 
-    private static void EnablePrivilege(string name)
+    internal static void EnablePrivilege(string name)
     {
         if (!OpenProcessToken(Process.GetCurrentProcess().Handle, 0x0020 | 0x0008, out var token)) // ADJUST | QUERY
             throw new Win32Exception();

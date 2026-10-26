@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace ZyxExplode;
 
@@ -15,7 +17,10 @@ public partial class MainWindow
         if (_installApps == null)
         {
             _installApps = AppInstaller.Catalog();
-            AppsList.ItemsSource = _installApps;
+            var view = CollectionViewSource.GetDefaultView(_installApps);
+            view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(InstallableApp.Category)));
+            AppsList.ItemsSource = view;
+            BuildAppProfiles();
             AppInstaller.RefreshInstalled(_installApps);
             foreach (var a in _installApps) a.Selected = a.PreSelect && !a.Installed;
         }
@@ -31,10 +36,46 @@ public partial class MainWindow
               "\"Instalador de Aplicativo\": use o botão abaixo, espere atualizar e abra esta página de novo.";
     }
 
+    /// <summary>Marca os apps que estão na lista agora (respeita a busca) e ainda não estão instalados.</summary>
     private void BtnAppsAll_Click(object sender, RoutedEventArgs e)
     {
         if (_installApps == null || _appsBusy) return;
-        foreach (var a in _installApps) a.Selected = !a.Installed;
+        foreach (var a in CollectionViewSource.GetDefaultView(_installApps).Cast<InstallableApp>()) a.Selected = !a.Installed;
+    }
+
+    private void AppsSearch_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (_installApps == null) return;
+        var view = CollectionViewSource.GetDefaultView(_installApps);
+        string q = AppsSearch.Text.Trim();
+        if (q.Length == 0) view.Filter = null;
+        else view.Filter = o => o is InstallableApp a &&
+            (a.Name.Contains(q, StringComparison.OrdinalIgnoreCase) || a.Description.Contains(q, StringComparison.OrdinalIgnoreCase)
+             || a.Category.Contains(q, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void BuildAppProfiles()
+    {
+        if (AppsProfiles.Children.Count > 0) return;
+        foreach (var (label, ids) in AppInstaller.Profiles)
+        {
+            var b = new Button
+            {
+                Content = label, Tag = ids, Style = (Style)FindResource("OutlineButton"),
+                Padding = new Thickness(12, 5), FontSize = 11, Margin = new Thickness(0, 0, 8, 6),
+                ToolTip = $"Marca {ids.Length} apps (os que ainda não estão instalados).",
+            };
+            b.Click += AppProfile_Click;
+            AppsProfiles.Children.Add(b);
+        }
+    }
+
+    private void AppProfile_Click(object sender, RoutedEventArgs e)
+    {
+        if (_installApps == null || _appsBusy || sender is not Button { Tag: string[] ids }) return;
+        foreach (var a in _installApps) a.Selected = ids.Contains(a.WingetId) && !a.Installed;
+        int n = _installApps.Count(a => a.Selected);
+        AppsStatus.Text = $"{n} apps marcados nesta seleção. Confira a lista e clique em INSTALAR SELECIONADOS.";
     }
 
     private void BtnAppsNone_Click(object sender, RoutedEventArgs e)

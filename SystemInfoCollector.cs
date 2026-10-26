@@ -1,4 +1,6 @@
 using System.Management;
+using Microsoft.Win32;
+using X86 = System.Runtime.Intrinsics.X86;
 
 namespace ZyxExplode;
 
@@ -97,7 +99,79 @@ public static class SystemInfoCollector
             cpu.Add("Cache L2", S(c, "L2CacheSize") + " KB");
             cpu.Add("Cache L3", S(c, "L3CacheSize") + " KB");
             cpu.Add("Virtualização habilitada", S(c, "VirtualizationFirmwareEnabled"));
+
+            // ---- Detalhes no estilo do CPU-Z ----
+            cpu.Add("Arquitetura", ArchName(c["Architecture"]));
+            string? ident = CpuRegistry("Identifier");
+            if (ident != null) cpu.Add("Família / modelo / passo", ident);
+            string? vendor = CpuRegistry("VendorIdentifier");
+            if (vendor != null) cpu.Add("Identificação do fabricante", vendor);
+            cpu.Add("Clock atual (leitura do WMI)", S(c, "CurrentClockSpeed") + " MHz");
+            if (c["ExtClock"] != null && Convert.ToDouble(c["ExtClock"]) > 0 && c["MaxClockSpeed"] != null)
+            {
+                double ext = Convert.ToDouble(c["ExtClock"]), max = Convert.ToDouble(c["MaxClockSpeed"]);
+                cpu.Add("Clock do barramento", $"{ext:0.#} MHz");
+                cpu.Add("Multiplicador (estimado)", $"x{max / ext:0.#}");
+            }
+            cpu.Add("ID do processador", S(c, "ProcessorId"));
+            cpu.Add("Revisão", S(c, "Revision"));
         }
+
+        // Caches reportados pelo Windows: nível 3 = L1, 4 = L2, 5 = L3 (cada bloco costuma ser de um núcleo).
+        try
+        {
+            var caches = Query("SELECT Level, InstalledSize FROM Win32_CacheMemory")
+                .Select(m => (Level: Convert.ToInt32(m["Level"] ?? 0), Kb: Convert.ToInt64(m["InstalledSize"] ?? 0)))
+                .ToList();
+            var cacheNode = n.Add("Caches");
+            foreach (var g in caches.Where(x => x.Level is >= 3 and <= 5).GroupBy(x => x.Level).OrderBy(g => g.Key))
+                cacheNode.Add($"Cache L{g.Key - 2}", $"{g.Count()} bloco(s) · {g.Sum(x => x.Kb):N0} KB no total");
+            if (cacheNode.Children.Count == 0) n.Children.Remove(cacheNode);
+        }
+        catch { }
+
+        var sets = n.Add("Conjuntos de instruções");
+        sets.Add("Suportados", InstructionSets());
+    }
+
+    private static string ArchName(object? code) => code switch
+    {
+        null => "—",
+        _ => Convert.ToInt32(code) switch { 0 => "x86", 5 => "ARM", 9 => "x64 (AMD64)", 12 => "ARM64", var v => $"código {v}" },
+    };
+
+    private static string? CpuRegistry(string name)
+    {
+        try
+        {
+            using var k = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+            return k?.GetValue(name)?.ToString();
+        }
+        catch { return null; }
+    }
+
+    /// <summary>Extensões que este processador executa (lidas pelo próprio .NET, que consulta o CPUID).</summary>
+    private static string InstructionSets()
+    {
+        var list = new List<string>();
+        void Add(string name, bool supported) { if (supported) list.Add(name); }
+        Add("SSE", X86.Sse.IsSupported);
+        Add("SSE2", X86.Sse2.IsSupported);
+        Add("SSE3", X86.Sse3.IsSupported);
+        Add("SSSE3", X86.Ssse3.IsSupported);
+        Add("SSE4.1", X86.Sse41.IsSupported);
+        Add("SSE4.2", X86.Sse42.IsSupported);
+        Add("AVX", X86.Avx.IsSupported);
+        Add("AVX2", X86.Avx2.IsSupported);
+        Add("AVX-512F", X86.Avx512F.IsSupported);
+        Add("FMA", X86.Fma.IsSupported);
+        Add("AES", X86.Aes.IsSupported);
+        Add("PCLMULQDQ", X86.Pclmulqdq.IsSupported);
+        Add("POPCNT", X86.Popcnt.IsSupported);
+        Add("LZCNT", X86.Lzcnt.IsSupported);
+        Add("BMI1", X86.Bmi1.IsSupported);
+        Add("BMI2", X86.Bmi2.IsSupported);
+        return list.Count > 0 ? string.Join(", ", list) : "—";
     }
 
     private static string RamType(object? smbios, object? typeLegacy)

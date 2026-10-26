@@ -1,3 +1,37 @@
+## Novidades da v0.17
+
+**Nova página · ZYX FERRAMENTAS › Memória (estilo RAMMap)**
+- Mostra como o Windows está usando a RAM: **em uso, modificada, standby (cache) e livre**, em barra e em números, com o standby
+  separado por prioridade (0 a 7), cache do sistema, commit e pools do kernel. Atualiza sozinha a cada 2 s.
+- **Leitura do estado** em português (RAM quase cheia, standby grande, commit alto, leitura de disco por segundo, pool não paginado alto).
+- Botões para **esvaziar**: working sets, working set do sistema, lista modificada, standby e standby de prioridade 0, mais ESVAZIAR TUDO,
+  com o quanto de RAM voltou a ficar disponível em cada um.
+- Tabela de **processos por memória** (na RAM agora, privada e pico), com busca e opção de esvaziar o working set do processo selecionado.
+- Precisa rodar como administrador (como o resto do programa). Não inclui o detalhamento por tipo de página (mapped file, page table...)
+  do RAMMap, que depende de chamadas internas não documentadas do Windows.
+
+**Nova página · ZYX FERRAMENTAS › Manutenção**
+- SFC, DISM (checar, reparar, limpar componentes), chkdsk sem reiniciar, limpar DNS, renovar IP, Winsock e TCP/IP, plano de energia,
+  relatório de bateria, temporários antigos, lixeira e Limpeza de Disco do Windows.
+- **O comando exato aparece antes de rodar**; as tarefas rodam uma de cada vez, com saída ao vivo e botão CANCELAR.
+- Avisos antes de rodar o que demora, derruba a rede, pede reinício ou apaga de vez.
+
+**Instalar apps · catálogo grande**
+- Mais de 120 apps em categorias (navegadores, comunicação, jogos, mídia, escritório, compactadores, utilitários, acesso remoto,
+  hardware e diagnóstico, segurança, desenvolvimento e maker, imagem, runtimes), com **busca**.
+- **Seleções prontas**: CLIENTE BÁSICO, GAMER e TÉCNICO.
+
+**Nova página · ZYX DESEMPENHO › Teste de monitor**
+- Seis testes em tela cheia: cores sólidas (pixels mortos, vazamento de luz), gradientes (bandas), movimento (rastro e fantasma),
+  padrões de pixel, grade e geometria, e taxa de atualização com contagem de quadros pulados.
+
+**Sistema › Processador (estilo CPU-Z)**
+- Família, modelo e passo, clock atual, barramento e multiplicador estimado, blocos de cache L1/L2/L3 e conjuntos de instruções
+  (SSE, AVX, AVX2, AVX-512, FMA, AES...).
+
+**Correção**
+- Sistema › Placa de vídeo: a memória passa a mostrar o tamanho real (antes o WMI limitava em 4 GB).
+
 ## Novidades da v0.16
 
 **Nova página · ZYX FERRAMENTAS › Inicialização**

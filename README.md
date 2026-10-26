@@ -10,6 +10,16 @@ painel de GPU, benchmarks, stress tests, overlay de FPS, ferramentas do Windows 
 > **Download oficial:** apenas em [github.com/zyxsolutions/Zyx-explode/releases](https://github.com/zyxsolutions/Zyx-explode/releases).
 > O app roda como administrador; não use versões baixadas de outros lugares.
 
+## Novidades da v0.17
+- **Memória** (ZYX FERRAMENTAS, estilo RAMMap): RAM em uso, modificada, standby por prioridade e livre; cache, commit e pools; processos por
+  memória; botões para esvaziar working sets, lista modificada e standby; leitura do estado em português.
+- **Manutenção** (ZYX FERRAMENTAS): SFC, DISM, chkdsk, DNS, Winsock, plano de energia, relatório de bateria e limpeza, com o comando visível
+  antes de rodar e saída ao vivo.
+- **Instalar apps**: catálogo de mais de 120 apps em categorias, com busca e seleções prontas (cliente básico, gamer, técnico).
+- **Teste de monitor** (ZYX DESEMPENHO): pixels mortos, gradientes, movimento, padrões de pixel, geometria e quadros pulados.
+- **Processador** (Sistema): detalhes no estilo CPU-Z (modelo, multiplicador, caches, conjuntos de instruções).
+- **Correção**: a memória da placa de vídeo na aba Sistema mostra o tamanho real (o WMI limitava em 4 GB).
+
 ## Novidades da v0.16
 - **Inicialização** (ZYX FERRAMENTAS): veja, desative ou remova os programas que abrem junto com o Windows, com opção de desfazer.
 - **Instalar apps** (ZYX FERRAMENTAS): Steam, Chrome, Discord, Lightshot, 7-Zip, WinRAR e VLC de uma vez depois de formatar, pelo winget.
@@ -126,8 +136,8 @@ App WPF (.NET 8) com:
     desempenho do ZYX BENCH, tabela de componentes, anéis de RAM/VRAM/disco, eventos recentes e saúde do PC.
   - **ZYX EXPLODE** · Sistema, Sensores, Placa de vídeo, Discos, Energia, Rede.
   - **ZYX JOGOS** · Biblioteca, FPS estimado, Gargalo, Overlay.
-  - **ZYX DESEMPENHO** · Benchmark, Stress test, Overclock.
-  - **ZYX FERRAMENTAS** · Otimização, Inicialização, Instalar apps, Drivers, Integração.
+  - **ZYX DESEMPENHO** · Benchmark, Stress test, Overclock, Teste de monitor.
+  - **ZYX FERRAMENTAS** · Otimização, Memória, Manutenção, Inicialização, Instalar apps, Drivers, Integração.
   - **ZYX MAKER** · Portas COM, Drivers seriais.
 - Botão de **modo escuro/claro** no canto superior direito (`ThemeManager.cs`); a escolha fica salva. O overlay de jogos e os avisos de dispositivo ficam sempre escuros.
 - Leitura ao vivo de temperatura e carga da CPU e da GPU sempre visível no rodapé do menu.
