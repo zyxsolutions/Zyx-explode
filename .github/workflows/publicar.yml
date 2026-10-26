@@ -60,6 +60,14 @@ jobs:
           Copy-Item LEIA-ME.txt dist/LEIA-ME.txt
           Compress-Archive -Path dist/ZyxExplode.exe, dist/LEIA-ME.txt -DestinationPath ZyxExplode.zip
 
+      - name: Gerar version.txt (usado pela atualização dentro do programa)
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content ZyxExplode.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          $setup = (Get-FileHash installer/Output/ZyxExplode-Setup.exe -Algorithm SHA256).Hash.ToLower()
+          $exe = (Get-FileHash dist/ZyxExplode.exe -Algorithm SHA256).Hash.ToLower()
+          Set-Content -Path version.txt -Value "$version`n$setup`n$exe" -NoNewline
+
       - name: Atualizar release "latest"
         if: startsWith(github.ref, 'refs/heads/')
         shell: pwsh
@@ -67,7 +75,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete latest --cleanup-tag --yes
-          gh release create latest installer/Output/ZyxExplode-Setup.exe ZyxExplode.zip dist/ZyxExplode.exe --target $env:GITHUB_SHA --latest --title "ZYX EXPLODE (versão mais recente)" --notes-file NOVIDADES.md
+          gh release create latest installer/Output/ZyxExplode-Setup.exe ZyxExplode.zip dist/ZyxExplode.exe version.txt --target $env:GITHUB_SHA --latest --title "ZYX EXPLODE (versão mais recente)" --notes-file NOVIDADES.md
 
       - name: Release da versão (tag)
         if: startsWith(github.ref, 'refs/tags/')

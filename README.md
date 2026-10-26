@@ -10,6 +10,10 @@ painel de GPU, benchmarks, stress tests, overlay de FPS, ferramentas do Windows 
 > **Download oficial:** apenas em [github.com/zyxsolutions/Zyx-explode/releases](https://github.com/zyxsolutions/Zyx-explode/releases).
 > O app roda como administrador; não use versões baixadas de outros lugares.
 
+## Novidades da v0.18
+- **Atualização em um clique**: o botão no canto superior direito baixa e instala a versão nova sozinho (confere o SHA-256), sem desinstalar nada.
+- **Processos** (ZYX DESEMPENHO, estilo Process Lasso): CPU e RAM por programa, prioridade, núcleos, prioridade de disco, encerrar e regras salvas.
+
 ## Novidades da v0.17
 - **Memória** (ZYX FERRAMENTAS, estilo RAMMap): RAM em uso, modificada, standby por prioridade e livre; cache, commit e pools; processos por
   memória; botões para esvaziar working sets, lista modificada e standby; leitura do estado em português.

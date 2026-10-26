@@ -1,0 +1,113 @@
+<UserControl x:Class="ZyxExplode.ProcessesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             IsVisibleChanged="Page_IsVisibleChanged">
+
+    <UserControl.Resources>
+        <Style x:Key="MonoCell" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource Mono}"/>
+        </Style>
+        <Style x:Key="MutedMonoCell" TargetType="TextBlock" BasedOn="{StaticResource MonoCell}">
+            <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="36,30,36,30">
+
+            <Grid Margin="0,0,0,20">
+                <StackPanel Margin="0,0,260,0">
+                    <TextBlock Text="PROCESSOS" Style="{StaticResource H1}"/>
+                    <TextBlock Style="{StaticResource Sub}" TextWrapping="Wrap"
+                               Text="Veja quem usa CPU e RAM, mude a prioridade e os núcleos de cada programa e salve regras que valem sempre. Estilo Process Lasso."/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                    <CheckBox x:Name="ChkAuto" Content="Atualizar sozinho" IsChecked="True" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <Button Style="{StaticResource OutlineButton}" Content="ATUALIZAR" Padding="18,9" Click="BtnRefresh_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <TextBlock Text="PROGRAMAS EM EXECUÇÃO" Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                        <TextBox x:Name="ProcSearch" Width="230" HorizontalAlignment="Right" TextChanged="ProcSearch_Changed"
+                                 ToolTip="Filtrar por nome"/>
+                    </Grid>
+                    <DataGrid x:Name="ProcGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserResizeColumns="False" Height="380"
+                              SelectionMode="Single" SelectionChanged="ProcGrid_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="PROCESSO" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="80" ElementStyle="{StaticResource MutedMonoCell}"/>
+                            <DataGridTextColumn Header="CPU" Binding="{Binding CpuText}" SortMemberPath="Cpu" Width="80" ElementStyle="{StaticResource MonoCell}"/>
+                            <DataGridTextColumn Header="RAM" Binding="{Binding RamText}" SortMemberPath="WorkingSet" Width="110" ElementStyle="{StaticResource MonoCell}"/>
+                            <DataGridTextColumn Header="PRIORIDADE" Binding="{Binding Priority}" Width="110"/>
+                            <DataGridTextColumn Header="NÚCLEOS" Binding="{Binding Affinity}" Width="100" ElementStyle="{StaticResource MutedMonoCell}"/>
+                            <DataGridTextColumn Header="REGRA" Binding="{Binding RuleText}" Width="70" ElementStyle="{StaticResource MutedMonoCell}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock x:Name="ProcStatus" Foreground="{DynamicResource Faint}" FontSize="11" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border x:Name="EditCard" Style="{StaticResource CardBorder}" Margin="0,0,0,14" IsEnabled="False" Opacity="0.55">
+                <StackPanel>
+                    <TextBlock x:Name="EditTitle" Text="SELECIONE UM PROGRAMA NA TABELA" Style="{StaticResource Label}"/>
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="260"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                            <TextBlock Text="Prioridade de CPU" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,0,0,4"/>
+                            <ComboBox x:Name="CmbPriority">
+                                <ComboBoxItem Tag="idle" Content="Baixíssima"/>
+                                <ComboBoxItem Tag="below" Content="Baixa"/>
+                                <ComboBoxItem Tag="normal" Content="Normal"/>
+                                <ComboBoxItem Tag="above" Content="Alta"/>
+                                <ComboBoxItem Tag="high" Content="Altíssima"/>
+                            </ComboBox>
+                            <CheckBox x:Name="ChkLowIo" Content="Prioridade de disco baixa" Margin="0,12,0,0"
+                                      ToolTip="O programa não atrapalha os outros quando lê e grava no disco (bom para antivírus, backup e indexadores)."/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <Grid Margin="0,0,0,4">
+                                <TextBlock Text="Núcleos permitidos (afinidade)" Foreground="{DynamicResource Muted}" FontSize="12" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Style="{StaticResource OutlineButton}" Content="TODOS" Padding="10,3" FontSize="11" Margin="0,0,6,0" Click="BtnCoresAll_Click"/>
+                                    <Button Style="{StaticResource OutlineButton}" Content="1ª METADE" Padding="10,3" FontSize="11" Margin="0,0,6,0" Click="BtnCoresFirst_Click"/>
+                                    <Button Style="{StaticResource OutlineButton}" Content="2ª METADE" Padding="10,3" FontSize="11" Click="BtnCoresSecond_Click"/>
+                                </StackPanel>
+                            </Grid>
+                            <WrapPanel x:Name="CorePanel"/>
+                        </StackPanel>
+                    </Grid>
+                    <CheckBox x:Name="ChkRule" Margin="0,14,0,0"
+                              Content="Lembrar: aplicar sempre que este programa abrir (enquanto o ZYX EXPLODE estiver aberto)"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                        <Button Style="{StaticResource PrimaryButton}" Content="APLICAR" Padding="22,9" Margin="0,0,10,0" Click="BtnApply_Click"/>
+                        <Button Style="{StaticResource OutlineButton}" Content="ENCERRAR PROGRAMA" Padding="18,9" Click="BtnEnd_Click"/>
+                    </StackPanel>
+                    <TextBlock x:Name="EditResult" Foreground="{DynamicResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="REGRAS SALVAS" Style="{StaticResource Label}"/>
+                    <TextBlock x:Name="RulesEmpty" Foreground="{DynamicResource Faint}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Text="Nenhuma regra ainda. Ajuste um programa acima, marque “Lembrar” e clique em APLICAR."/>
+                    <DataGrid x:Name="RulesGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserResizeColumns="False" MaxHeight="220" Visibility="Collapsed">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="PROGRAMA" Binding="{Binding Name}" Width="220"/>
+                            <DataGridTextColumn Header="O QUE FAZ" Binding="{Binding Summary}" Width="*" ElementStyle="{StaticResource MutedMonoCell}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button x:Name="BtnRemoveRule" Style="{StaticResource OutlineButton}" Content="REMOVER REGRA SELECIONADA" Padding="16,8"
+                            HorizontalAlignment="Left" Margin="0,10,0,0" Visibility="Collapsed" Click="BtnRemoveRule_Click"/>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

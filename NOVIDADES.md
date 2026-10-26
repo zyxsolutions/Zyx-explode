@@ -1,3 +1,17 @@
+## Novidades da v0.18
+
+**Atualização em um clique, dentro do programa**
+- Botão no canto superior direito: quando sai versão nova, ele mostra **ATUALIZAR PARA x.y.z**. Um clique baixa, fecha o programa, atualiza e abre de novo,
+  mantendo configurações e históricos. Sem desinstalar nem baixar do GitHub na mão.
+- Confere o SHA-256 do arquivo baixado antes de instalar. Funciona instalado (usa o instalador em modo silencioso) e com o `.exe` solto (troca o arquivo).
+- Verifica sozinho alguns segundos depois de abrir. Clique no botão a qualquer momento para verificar de novo.
+
+**Nova página · ZYX DESEMPENHO › Processos (estilo Process Lasso)**
+- Lista os programas com **CPU, RAM, prioridade e núcleos**, com busca. Atualiza sozinha.
+- Muda a **prioridade de CPU**, os **núcleos permitidos (afinidade)** e a **prioridade de disco** de qualquer programa, e encerra programas travados.
+- **Regras salvas**: marque "Lembrar" e o ZYX EXPLODE reaplica os ajustes sempre que o programa abrir de novo. As regras valem enquanto o
+  ZYX EXPLODE estiver aberto (não é um serviço do Windows).
+
 ## Novidades da v0.17
 
 **Nova página · ZYX FERRAMENTAS › Memória (estilo RAMMap)**

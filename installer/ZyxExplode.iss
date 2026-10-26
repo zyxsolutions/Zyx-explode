@@ -58,6 +58,8 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; Atualização feita de dentro do programa (modo silencioso): abre a versão nova sozinho.
+Filename: "{app}\{#AppExe}"; Flags: nowait skipifnotsilent
 
 [Code]
 // As configurações e o histórico ficam em %AppData%\ZyxExplode, fora da pasta do programa.

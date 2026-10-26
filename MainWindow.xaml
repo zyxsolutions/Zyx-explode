@@ -128,6 +128,8 @@
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
                         WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button x:Name="BtnUpdate" Style="{StaticResource CaptionButton}" Content="&#xE895;" Click="BtnUpdate_Click"
+                        ToolTip="Verificar atualizações"/>
                 <Button x:Name="BtnTheme" Style="{StaticResource CaptionButton}" Content="&#xE706;" Click="Theme_Click" ToolTip="Modo claro"/>
                 <Button Style="{StaticResource CaptionButton}" Content="&#xE921;" Click="Min_Click" ToolTip="Minimizar"/>
                 <Button x:Name="BtnMax" Style="{StaticResource CaptionButton}" Content="&#xE922;" Click="Max_Click" ToolTip="Maximizar"/>
@@ -282,6 +284,12 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE9F3;" FontFamily="{StaticResource Icons}" FontSize="14" Width="28" VerticalAlignment="Center"/>
                                     <TextBlock Text="Otimização" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="NavProcesses" Style="{StaticResource NavItem}" Tag="PageProcesses" Checked="Nav_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE9D9;" FontFamily="{StaticResource Icons}" FontSize="14" Width="28" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Processos" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="NavMemory" Style="{StaticResource NavItem}" Tag="PageMemory" Checked="Nav_Checked">
@@ -2345,6 +2353,7 @@
                 </ScrollViewer>
 
                 <!-- ===== ZYX MEMÓRIA · MANUTENÇÃO · TESTE DE MONITOR (controles próprios) ===== -->
+                <local:ProcessesPage x:Name="PageProcesses" Visibility="Collapsed"/>
                 <local:MemoryPage x:Name="PageMemory" Visibility="Collapsed"/>
                 <local:MaintenancePage x:Name="PageMaintenance" Visibility="Collapsed"/>
                 <local:MonitorTestPage x:Name="PageMonitor" Visibility="Collapsed"/>
