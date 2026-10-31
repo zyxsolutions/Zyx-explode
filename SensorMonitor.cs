@@ -30,16 +30,42 @@ public sealed class SensorMonitor : IDisposable
     /// <summary>Detecta o hardware (leva de 0,5 a alguns segundos) fora da thread da janela. Até terminar, Refresh não faz nada.</summary>
     public Task OpenAsync() => Task.Run(() => { _computer.Open(); _open = true; });
 
-    public void Refresh()
+    private volatile bool _refreshing;
+
+    /// <summary>CPU, GPU e memória são leves e mudam a cada segundo. Placa-mãe, discos (SMART), rede e controladoras custam caro
+    /// (driver, ioctl e WMI) e só precisam ser lidos de tempos em tempos.</summary>
+    private static bool IsFast(HardwareType t) =>
+        t is HardwareType.Cpu or HardwareType.Memory or HardwareType.GpuNvidia or HardwareType.GpuAmd or HardwareType.GpuIntel;
+
+    /// <summary>Lê os sensores sem travar a janela: a leitura pesada (hw.Update) roda em outra thread e só a cópia dos valores volta para a janela.</summary>
+    public async Task RefreshAsync(bool includeSlow)
     {
-        if (!_open) return;
-        foreach (var hw in _computer.Hardware)
-            Walk(hw);
+        if (!_open || _refreshing) return;
+        _refreshing = true;
+        try
+        {
+            var targets = _computer.Hardware.Where(h => includeSlow || IsFast(h.HardwareType)).ToList();
+            await Task.Run(() =>
+            {
+                foreach (var hw in targets)
+                {
+                    try { UpdateTree(hw); } catch { }
+                }
+            });
+            foreach (var hw in _computer.Hardware)
+                Walk(hw);
+        }
+        finally { _refreshing = false; }
+    }
+
+    private static void UpdateTree(IHardware hw)
+    {
+        hw.Update();
+        foreach (var sub in hw.SubHardware) UpdateTree(sub);
     }
 
     private void Walk(IHardware hw)
     {
-        hw.Update();
         foreach (var s in hw.Sensors)
         {
             string id = s.Identifier.ToString();

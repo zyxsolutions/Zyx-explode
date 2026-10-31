@@ -1,3 +1,13 @@
+## Novidades da v0.18.1
+
+**O programa ficou bem mais leve com a janela aberta**
+- Os sensores não são mais lidos na thread da janela: a leitura pesada roda em segundo plano e a tela não engasga.
+- Placa-mãe, discos (SMART) e rede são lidos a cada 15 s (ou a cada segundo só quando as páginas Sensores ou Discos estão abertas). CPU, GPU e memória
+  continuam a cada segundo.
+- Com a janela minimizada (e sem teste, overlay ou análise de gargalo rodando), as leituras caem para uma a cada 10 s.
+- O rastreio de FPS (ETW), que escuta os eventos gráficos de todos os programas, agora só liga quando você abre Gargalo ou Overlay, e desliga depois.
+- A consulta de FPS à API HowManyFPS só acontece ao abrir a página Jogos (antes disparava ao abrir o programa, para todos os jogos).
+
 ## Novidades da v0.18
 
 **Atualização em um clique, dentro do programa**

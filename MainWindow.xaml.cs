@@ -44,6 +44,16 @@ public partial class MainWindow : Window
     // Gargalo + overlay
     public sealed record MeterItem(string Label, string Value, double Fraction);
     private readonly FrameMonitor _frames = new();
+    private int _tick;
+    private bool _gamesNeedFetch;
+
+    /// <summary>O rastreio de FPS (ETW) escuta todos os programas do Windows: só fica ligado quando alguém usa (Gargalo, Overlay).</summary>
+    private void UpdateFrameMonitor()
+    {
+        bool need = PageBottleneck.IsVisible || PageOverlay.IsVisible || _bnSession != null || (_overlay?.IsVisible ?? false);
+        if (need && !_frames.Running && _frames.Error == null) _frames.Start();
+        else if (!need && _frames.Running) _frames.Dispose();
+    }
     private BottleneckSession? _bnSession;
     private double _balanceRatio = 1;
     private OverlayWindow? _overlay;
@@ -103,12 +113,21 @@ public partial class MainWindow : Window
         Loaded += async (_, _) => await LoadHardwareAsync();
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        _timer.Tick += (_, _) =>
+        _timer.Tick += async (_, _) =>
         {
             // Durante a cena de GPU as leituras de sensores (NVML/driver) ficam pausadas: cada consulta trava o driver
             // por um instante e aparecia como engasgo no 1% low do benchmark.
             if (_gpuBenchActive) return;
-            _monitor.Refresh();
+
+            _tick++;
+            // Janela minimizada e nada que dependa dos sensores rodando: lê só uma vez a cada 10 s, para o programa não pesar no PC.
+            bool needsLive = _stress.Running || _gpuBurnOn || _bnSession != null || (_overlay?.IsVisible ?? false);
+            if (WindowState == WindowState.Minimized && !needsLive && _tick % 10 != 0) { UpdateFrameMonitor(); return; }
+
+            // Discos, placa-mãe e rede: a cada 15 s, ou a cada segundo só quando a página que mostra esses dados está aberta.
+            bool slow = PageSensors.IsVisible || PageDisks.IsVisible || _tick % 15 == 0;
+            await _monitor.RefreshAsync(slow);
+            UpdateFrameMonitor();
             if (_monitor.IsOpen) StatusText.Text = $"{_monitor.Rows.Count} sensores · atualizado {DateTime.Now:HH:mm:ss}";
             UpdateStressPanel();
             UpdateGpuLive();
@@ -160,7 +179,7 @@ public partial class MainWindow : Window
         {
             try { await _monitor.OpenAsync(); }
             catch (Exception ex) { StatusText.Text = $"Sensores indisponíveis: {ex.Message}"; return; }
-            _monitor.Refresh();
+            await _monitor.RefreshAsync(true);
             UpdateCpuSensorWarning();
             AddChip("Todos", null, isChecked: true);
             foreach (var c in _monitor.Rows.Select(r => r.Category).Distinct().OrderBy(x => x))
@@ -270,6 +289,7 @@ public partial class MainWindow : Window
         switch (page)
         {
             case "PageDash": UpdateDashboard(); break;
+            case "PageGames": if (_gamesNeedFetch) { _gamesNeedFetch = false; RefreshGames(); } break;
             case "PageDisks": RefreshDiskHealth(); break;
             case "PageEnergy": RefreshEnergy(); break;
             case "PageOc": UpdateOcGpuState(); UpdateRecentErrors(); break;
@@ -525,8 +545,13 @@ public partial class MainWindow : Window
             GameSourceText.Text = "FPS médio e 1% low medidos em sessões reais de jogo. Respostas ficam em cache por 7 dias. " +
                                   "A API usa as configurações gráficas dela; \"Gráficos\" vale só para a estimativa.";
             BtnApiKey.Content = "ATUALIZAR CHAVE";
-            _gameFetch = new CancellationTokenSource();
-            _ = FetchGamesAsync(res, up, _gameFetch.Token);
+            // Chamadas à API só quando a página de jogos está aberta (antes rodavam já na abertura do programa).
+            if (PageGames.IsVisible)
+            {
+                _gameFetch = new CancellationTokenSource();
+                _ = FetchGamesAsync(res, up, _gameFetch.Token);
+            }
+            else _gamesNeedFetch = true;
         }
         else
         {
@@ -569,8 +594,6 @@ public partial class MainWindow : Window
 
     private void InitBottleneckAndOverlay()
     {
-        _frames.Start();
-
         var (ratio, text) = BottleneckAnalyzer.Balance(_gpuIdx, _cpuIdx);
         _balanceRatio = ratio;
         BnCpuName.Text = $"CPU · {GameCatalog.ShortCpuName(_cpuName)}";
